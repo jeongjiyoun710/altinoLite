@@ -207,6 +207,8 @@ while 1:
     Go(260, 260)
     Turn()
     go_turn()
+
+    # 만약 sensor.CDS가 커지는 경우
     if(sensor.CDS > 730 and cds_ok == False):
         Go(0, 0)
         Al_sound("stopQue.mp3")
@@ -215,7 +217,6 @@ while 1:
         text = inputAudio()
 
         if (text == "출발"):
-            print(sensor.CDS)
             cds_ok = True
             continue
         else:
@@ -226,6 +227,7 @@ while 1:
 
     if(cds_cnt == 10):
         cds_ok = False
+        cds_cnt = 0
     
     delay(100)
 
