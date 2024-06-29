@@ -1,45 +1,45 @@
-import speech_recognition as sr
+# import speech_recognition as sr
 from ast import Global
 from AltinoLite import *
-import pygame
+# import pygame
 
 # 음성인식 
-def inputAudio():
-    # 음성 인식기 인스턴스 생성
-    recognizer = sr.Recognizer()
+# def inputAudio():
+#     # 음성 인식기 인스턴스 생성
+#     recognizer = sr.Recognizer()
 
-    # 마이크를 음성 소스로 사용
-    with sr.Microphone() as source:
-        print("말씀해 주세요...")
+#     # 마이크를 음성 소스로 사용
+#     with sr.Microphone() as source:
+#         print("말씀해 주세요...")
     
-        # 잡음 수준을 자동으로 조정
-        recognizer.adjust_for_ambient_noise(source)
+#         # 잡음 수준을 자동으로 조정
+#         recognizer.adjust_for_ambient_noise(source)
     
-        # 음성을 들음
-        audio_data = recognizer.listen(source)
+#         # 음성을 들음
+#         audio_data = recognizer.listen(source)
     
-        try:
-            # 음성을 텍스트로 변환 (한글 인식)
-            text = recognizer.recognize_google(audio_data, language='ko-KR')
-            print(f"인식된 텍스트: {text}")
-        except sr.UnknownValueError:
-            print("음성을 인식할 수 없습니다.")
-        except sr.RequestError as e:
-            print(f"구글 음성 인식 서비스에 문제가 있습니다: {e}")
+#         try:
+#             # 음성을 텍스트로 변환 (한글 인식)
+#             text = recognizer.recognize_google(audio_data, language='ko-KR')
+#             print(f"인식된 텍스트: {text}")
+#         except sr.UnknownValueError:
+#             print("음성을 인식할 수 없습니다.")
+#         except sr.RequestError as e:
+#             print(f"구글 음성 인식 서비스에 문제가 있습니다: {e}")
 
-    return text
+#     return text
 
 
 
 
 # 음성 파일 재생
-def Al_sound(soundFileName):
-    print("사운드 파일 재생 : " + soundFileName)
-    pygame.mixer.init()
-    pygame.mixer.music.load("D:\\J.JiYoun\\mp3\\" + soundFileName)
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
+# def Al_sound(soundFileName):
+#     print("사운드 파일 재생 : " + soundFileName)
+#     pygame.mixer.init()
+#     pygame.mixer.music.load("D:\\J.JiYoun\\mp3\\" + soundFileName)
+#     pygame.mixer.music.play()
+#     while pygame.mixer.music.get_busy():
+#         pygame.time.Clock().tick(10)
 
 f1Sum = 0
 f2Sum = 0
@@ -63,6 +63,62 @@ cnt = 1  #평균 카운트
 # 바퀴 돌리는 각도 변수
 turnDeg = 0 
 
+# 왼쪽이 비었다가 뒤가 막히면 이후 왼쪽으로 턴
+# 왼쪽이 비었다가 앞이 막히면 이후 왼쪽으로 후진/턴
+
+# 오른쪽이 비었다가 뒤가 막히면 이후 오른쪽으로 턴
+# 오른쪽이 비었다가 앞이 막히면 이후 오른쪽으로 후진/턴
+
+leftEmpty = False
+leftAfterBlock = False
+rightEmpty = False
+rightAfterBlock = False
+
+# 벽 감지 후 얼마나 뒤로 가는지 저장
+right_detectBack = 0
+left_detectBack = 0
+
+# 자동 회전
+def rotate():
+    global leftEmpty
+    global leftAfterBlock
+    global rightEmpty
+    global rightAfterBlock
+    global left_detectBack
+    global right_detectBack
+
+    if(sensor.IR[5] == 0):
+        leftEmpty = True
+    elif(sensor.IR[4] == 0):
+        rightEmpty = True
+
+
+    # 이후 감지
+    if(leftEmpty == True and sensor.IR[5] >= 5):
+        leftAfterBlock = True
+        leftEmpty = False
+    elif(rightEmpty == True and sensor.IR[4] >= 5):
+        rightAfterBlock = True
+        rightEmpty = False
+
+    # 만약 빈것을 확인 후 다시 감지가 된 상태라면, 얼마나 뒤로 가는지 저장
+    if(leftAfterBlock == True and sensor.IR[6] < 300):
+        left_detectBack += 1
+    elif(rightAfterBlock == True and sensor.IR[6] < 300):
+        right_detectBack += 1
+
+    
+    # 뒤가 막히게 된다면
+    if(sensor.IR[6] >= 300):
+        # 왼쪽으로 가자
+        if(leftAfterBlock == True):
+            Go(300, 300)
+            delay(left_detectBack - 50)
+            # 여기서 이제 왼쪽으로 턴하도록 명령 (함수로 만들자)
+        if(rightAfterBlock == True):
+            Go(300, 300)
+            delay(right_detectBack - 50)
+            # 여기서 이제 오른쪽으로 턴하도록 명령 (함수로 만들자)
 
 # 센서 평균 구하기
 def Gear():
@@ -189,7 +245,7 @@ def go_turn():
 
 
 # 시작 음성
-Al_sound("start.mp3")
+# Al_sound("start.mp3")
 
 
 # CDS 센서 작동 변수
@@ -197,26 +253,36 @@ cds_ok = False
 cds_cnt = 0
 
 Open()
-Al_sound("conn.mp3")
+# Al_sound("conn.mp3")
 
 IRSet()
 
 
-Al_sound("go.mp3")
+# Al_sound("go.mp3")
 while 1:
     Go(260, 260)
     Turn()
     go_turn()
 
     # 만약 sensor.CDS가 커지는 경우
+    # if(sensor.CDS > 730 and cds_ok == False):
+    #     Go(0, 0)
+    #     Al_sound("stopQue.mp3")
+
+    #     # 음성인식
+    #     text = inputAudio()
+
+    #     if (text == "출발"):
+    #         cds_ok = True
+    #         continue
+    #     else:
+    #         break
+
     if(sensor.CDS > 730 and cds_ok == False):
         Go(0, 0)
-        Al_sound("stopQue.mp3")
+        text = str(input("1 = 출발 , 2 = 멈춤"))
 
-        # 음성인식
-        text = inputAudio()
-
-        if (text == "출발"):
+        if (text == "1"):
             cds_ok = True
             continue
         else:
