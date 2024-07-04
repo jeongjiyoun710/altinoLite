@@ -5,7 +5,7 @@ from AltinoLite import *
 from PyQt5.QtCore import QThread, pyqtSignal
 import time
 
-form_class = uic.loadUiType("altino.Ui")[0]
+form_class = uic.loadUiType("D:\\J.JiYoun\\python_class\\7day\\altino.Ui")[0]
 
 # 회전값
 rotate = 0
