@@ -9,3 +9,4 @@ sys.executable
 음성인식 기능
 pip install SpeechRecognition
 pip install pygame
+pip install pyaudio
