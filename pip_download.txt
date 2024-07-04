@@ -5,3 +5,7 @@ pip install PyQt5-tools
 python 위치
 import sys
 sys.executable
+
+음성인식 기능
+pip install SpeechRecognition
+pip install pygame
