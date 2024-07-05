@@ -36,8 +36,8 @@ def Al_sound(soundFileName):
     pygame.mixer.init()
 
     # 사운드 소스 위치 설정
-    # pygame.mixer.music.load("D:\\J.JiYoun\\mp3\\" + soundFileName) <== 실습실
-    pygame.mixer.music.load("C:\\Users\\buil\Desktop\\altino_class\\sound\\" + soundFileName)
+    pygame.mixer.music.load("D:\\J.JiYoun\\mp3\\" + soundFileName) #실습실 
+    # pygame.mixer.music.load("C:\\Users\\buil\Desktop\\altino_class\\sound\\" + soundFileName) #기능부실
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
@@ -358,6 +358,31 @@ def conerTurn(result):
 
 
 
+# 불빛을 만났을경우
+# 시작에서 불빛을 만날 경우 오른쪽과 직진을 고를 수 있다.
+# 만약 방향을 말했는데 벽이 있을 경우, 명령 취소 후 다시 뭍는다.
+def cds_check(text):
+    
+    right = 1
+    left = 1
+
+    if(text == "출발"):
+        Go(300, 300)
+
+        return "con"
+    elif(text == "오른쪽으로가"):
+        while right:
+            Go(300, 300)
+            if(sensor.IR[3] <= 30):
+                Steering(127)
+                delay(4000)
+                Steering(0)
+                right = 0
+                
+                return "con"
+    
+
+            
 
 # ============================================================= 다음부터는 본격적으로 실행
 
@@ -378,11 +403,13 @@ IRSet()
 Al_sound("go.mp3")
 while 1:
     Go(260, 260)
-    Turn()
-    go_turn()
 
     # 코너 확인
     conerCheck()
+
+    
+    Turn()
+    go_turn()
 
     # 만약 sensor.CDS가 커지는 경우
     # 즉, 불빛 감지
@@ -393,7 +420,8 @@ while 1:
         # 음성인식
         text = inputAudio()
 
-        if (text == "출발"):
+        result = cds_check(text)
+        if (result == "con"):
             cds_ok = True
             continue
         else:
@@ -401,7 +429,7 @@ while 1:
     cds_cnt+=1
 
     # 불빛 감지 이후 10번은 불빛 감지 x
-    if(cds_cnt == 10):
+    if(cds_cnt == 50):
         cds_ok = False
         cds_cnt = 0
     
