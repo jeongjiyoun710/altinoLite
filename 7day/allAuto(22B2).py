@@ -30,8 +30,6 @@ def inputAudio():
     return text
 
 
-
-
 # 음성 파일 재생
 def Al_sound(soundFileName):
     print("사운드 파일 재생 : " + soundFileName)
@@ -43,6 +41,14 @@ def Al_sound(soundFileName):
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
+
+
+
+
+
+
+
+
 
 f1Sum = 0
 f2Sum = 0
@@ -66,62 +72,7 @@ cnt = 1  #평균 카운트
 # 바퀴 돌리는 각도 변수
 turnDeg = 0 
 
-# 왼쪽이 비었다가 뒤가 막히면 이후 왼쪽으로 턴
-# 왼쪽이 비었다가 앞이 막히면 이후 왼쪽으로 후진/턴
 
-# 오른쪽이 비었다가 뒤가 막히면 이후 오른쪽으로 턴
-# 오른쪽이 비었다가 앞이 막히면 이후 오른쪽으로 후진/턴
-
-leftEmpty = False
-leftAfterBlock = False
-rightEmpty = False
-rightAfterBlock = False
-
-# 벽 감지 후 얼마나 뒤로 가는지 저장
-right_detectBack = 0
-left_detectBack = 0
-
-# 자동 회전
-def rotate():
-    global leftEmpty
-    global leftAfterBlock
-    global rightEmpty
-    global rightAfterBlock
-    global left_detectBack
-    global right_detectBack
-
-    if(sensor.IR[5] == 0):
-        leftEmpty = True
-    elif(sensor.IR[4] == 0):
-        rightEmpty = True
-
-
-    # 이후 감지
-    if(leftEmpty == True and sensor.IR[5] >= 5):
-        leftAfterBlock = True
-        leftEmpty = False
-    elif(rightEmpty == True and sensor.IR[4] >= 5):
-        rightAfterBlock = True
-        rightEmpty = False
-
-    # 만약 빈것을 확인 후 다시 감지가 된 상태라면, 얼마나 뒤로 가는지 저장
-    if(leftAfterBlock == True and sensor.IR[6] < 300):
-        left_detectBack += 1
-    elif(rightAfterBlock == True and sensor.IR[6] < 300):
-        right_detectBack += 1
-
-    
-    # 뒤가 막히게 된다면
-    if(sensor.IR[6] >= 300):
-        # 왼쪽으로 가자
-        if(leftAfterBlock == True):
-            Go(300, 300)
-            delay(left_detectBack - 50)
-            # 여기서 이제 왼쪽으로 턴하도록 명령 (함수로 만들자)
-        if(rightAfterBlock == True):
-            Go(300, 300)
-            delay(right_detectBack - 50)
-            # 여기서 이제 오른쪽으로 턴하도록 명령 (함수로 만들자)
 
 # 센서 평균 구하기
 def Gear():
@@ -171,6 +122,7 @@ def Gear():
     print(str(f1Avr) + " | " + str(f2Avr) + " | " + str(f3Avr) + " | " + str(r4Avr) + " | " + str(l5Avr) + " | " + str(b6Avr))
 
 
+# 벽에 너무 붙었을 경우 회전
 def Turn():
     Gear()
 
@@ -189,10 +141,10 @@ def Turn():
     elif(r4Avr < 100 and l5Avr < 100):
         Steering(0)
 
-    # 좌측으로 붙는 경우 오른쪽으로
-    elif(l5Avr > 100):
+    # 좌측으로 붙는 경우 오른쪽으로 => 센서 문제로 값 변경
+    elif(l5Avr > 180):
         # Steering(l5Avr-600)
-        turnDeg = l5Avr-100
+        turnDeg = l5Avr-150
         if(turnDeg > 127 or turnDeg < -127):
             # print("127 넘음")
             Steering(127)
@@ -200,7 +152,7 @@ def Turn():
             Steering(turnDeg)
 
 
-
+# 이동하면서 벽에 부딪히지 않도록 회전
 def go_turn():
     Gear()
     global turnDeg
@@ -247,6 +199,168 @@ def go_turn():
             delay(300)
 
 
+
+
+# -------- 다음부터는 코너 회전 명령 ------------
+
+# 완곡한 코너를 만났을 때, 빈 칸으로 꺾어야한다. 즉, 벽이 있다가 없어지는 구간을 찾아서 회전해야하는 것이다
+
+# chap.1 : 길가다 빈공간 찾기
+# chap.2 : 빈공간으로 꺾기
+# chap.3 : 만약 부딪힐 것 같으면 다시 뒤로
+
+# 회전해야하는지 확인
+turnCheck = False
+
+# 빈 방향 확인 변수
+leftConer = False
+rightConer = False
+
+forwardClose = False  # 앞이 막혔나 확인
+
+# 앞&양쪽 거리
+f2 = 0
+l5 = 0
+r4 = 0
+
+
+
+# 코너 만나는 것을 확인하는 함수
+def conerCheck():
+    global l5
+    global r4
+    global f2
+    global leftConer
+    global rightConer
+    global forwardClose
+
+    f2 = sensor.IR[2]
+    r4 = sensor.IR[4]
+    l5 = sensor.IR[5]
+
+    # 초기화 및 설정 (코너 확인)
+    if(l5 != 0):
+        leftConer = False
+    elif(r4 != 0):
+        rightConer = False
+
+    if(l5 == 0):
+        leftConer = True
+        forwardCloseCheck()
+    elif(r4 == 0):
+        rightConer = True
+        forwardCloseCheck()
+
+
+
+# 코너 체크가 되었다면, 앞이 막혔는지 확인하는 함수
+def forwardCloseCheck():
+    global f2
+
+    global forwardClose
+
+    global leftConer
+    global rightConer
+
+    global turnCheck
+
+    if(f2 >= 150):
+        Go(0, 0)
+
+        turnCheck = True
+        
+        # 멈춘 후, 빈 방향으로 꺾기 함수 실행
+        if(leftConer == True):
+            while turnCheck:
+                conerTurn("left")
+                
+        elif(rightConer == True):
+            while turnCheck:
+                conerTurn("right")
+
+
+
+# 이제 코너를 도는 함수이다
+# 이 함수에서는 받아온 값이 만약 left라면 왼쪽으로 가는 명령을, right라면 오른쪽으로 가는 명령을 내릴 것이다
+# 회전 중, 만약 대각선 센서를 통해 벽과 부딪히는 것을 감지하면 뒤로 다시 빠진다.
+# 다만, 뒤로 빠질 경우, 지금 회전하는 반대 방향으로 회전하며 뒤로 간다.
+# 뒤 센서가 감지할 경우 다시 앞으로 간다.
+
+def conerTurn(result):
+    turnValue = 0
+    
+    # 오른쪽 or 왼쪽
+    if(result == "left"):
+        turnValue = -127
+    elif(result == "right"):
+        turnValue = 127
+
+    print(result)
+    # ----------------------------------
+
+    # 회전이동 시작
+    # 벽에 부딪히는지 확인
+    f1 = 0
+    global f2
+    f3 = 0
+    f1Check = False
+    f3Check = False
+
+
+    b6 = 0 # 뒤 센서
+
+    # 다 돌았을 경우 초기화할 변수들
+    global leftConer
+    global rightConer
+    global forwardClose
+
+    f1 = sensor.IR[1]
+    f2 = sensor.IR[2]
+    f3 = sensor.IR[3]
+
+    # 지금부터는 뒤로 다시 돌아가는 것 ====================
+
+    # 뒤로 다시 회전 초기 설정
+    if(f1 >= 150):
+        f1Check = True
+    elif(f3 >= 150):
+        f3Check = True
+
+
+    # 회전하며 이동하자 (뒤로)
+    # 먼저 뒤에 부딪히는지 확인
+    if(b6>=300):
+        Go(0, 0)
+        f1Check = False
+        f3Check = False
+    elif(f1Check == True):
+        Steering(-30) # 왼쪽으로 핸들
+        Go(-270, -270)
+        print(f1Check, f3Check)
+    elif(f3Check == True):
+        Steering(50) # 오른쪽으로 핸들 => 바퀴가 잘 안돌아가서 50으로 변경
+        Go(-270, -270)
+        print(f1Check, f3Check)
+
+    # 아무것도 해당하지 않을 경우
+    else:
+        Steering(turnValue)
+        Go(270, 270)
+
+    
+    # 만약 다 돌았을 경우 => f1,2,3 센서가 아무것도 감지하지 않을 경우
+    if(f1 <= 40 and f2 == 0 and f3 <= 40):
+        global turnCheck
+
+        turnCheck = False
+        print("회전 종료")
+        Steering(0)
+
+
+
+
+# ============================================================= 다음부터는 본격적으로 실행
+
 # 시작 음성
 Al_sound("start.mp3")
 
@@ -267,7 +381,11 @@ while 1:
     Turn()
     go_turn()
 
+    # 코너 확인
+    conerCheck()
+
     # 만약 sensor.CDS가 커지는 경우
+    # 즉, 불빛 감지
     if(sensor.CDS > 730 and cds_ok == False):
         Go(0, 0)
         Al_sound("stopQue.mp3")
@@ -280,25 +398,16 @@ while 1:
             continue
         else:
             break
-
-    # if(sensor.CDS > 730 and cds_ok == False):
-    #     Go(0, 0)
-    #     text = str(input("1 = 출발 , 2 = 멈춤"))
-
-    #     if (text == "1"):
-    #         cds_ok = True
-    #         continue
-    #     else:
-    #         break
-
     cds_cnt+=1
 
-
+    # 불빛 감지 이후 10번은 불빛 감지 x
     if(cds_cnt == 10):
         cds_ok = False
         cds_cnt = 0
     
     delay(100)
+
+    # print("앞왼쪽 :" + str(sensor.IR[1]) + " | 앞 :" + str(sensor.IR[2]) + " | 앞오른쪽 :" + str(sensor.IR[3]) + " | 오른쪽 :" + str(sensor.IR[4]) + " | 왼쪽 :" + str(sensor.IR[5]) + " | 뒤 :" + str(sensor.IR[6]))
 
 
 Close()
