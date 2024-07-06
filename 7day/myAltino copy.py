@@ -22,6 +22,29 @@ class Thread1(QThread):
             time.sleep(0.05)
             self.updateSignal.emit("test")
 
+
+f1Sum = 0
+f2Sum = 0
+f3Sum = 0
+r4Sum = 0
+l5Sum = 0
+b6Sum = 0
+
+
+f1Avr = 0
+f2Avr = 0
+f3Avr = 0
+r4Avr = 0
+l5Avr = 0
+b6Avr = 0
+
+cnt = 1  #평균 카운트
+
+
+
+# 바퀴 돌리는 각도 변수
+turnDeg = 0 
+
 class Mywindow(QMainWindow, form_class):
     def __init__(self):
         super().__init__()

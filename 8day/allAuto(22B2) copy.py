@@ -3,6 +3,18 @@ from ast import Global
 from AltinoLite import *
 import pygame
 
+
+
+
+
+
+
+
+
+
+
+
+
 # 음성인식 
 def inputAudio():
     # 음성 인식기 인스턴스 생성
@@ -28,23 +40,6 @@ def inputAudio():
             print(f"구글 음성 인식 서비스에 문제가 있습니다: {e}")
 
     return text
-
-
-# 음성 파일 재생
-def Al_sound(soundFileName):
-    print("사운드 파일 재생 : " + soundFileName)
-    pygame.mixer.init()
-
-    # 사운드 소스 위치 설정
-    pygame.mixer.music.load("D:\\J.JiYoun\\mp3\\" + soundFileName) #실습실 
-    # pygame.mixer.music.load("C:\\Users\\buil\Desktop\\altino_class\\sound\\" + soundFileName) #기능부실
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
-
-
-
-
 
 
 
@@ -396,21 +391,17 @@ def cds_check(text):
 
 # ============================================================= 다음부터는 본격적으로 실행
 
-# 시작 음성
-Al_sound("start.mp3")
 
 
 # CDS 센서 작동 변수
 cds_ok = False
 cds_cnt = 0
 
-Open()
-Al_sound("conn.mp3")
-
-IRSet()
 
 
 Al_sound("go.mp3")
+
+
 while 1:
     Go(260, 260)
 
@@ -447,5 +438,3 @@ while 1:
 
     # print("앞왼쪽 :" + str(sensor.IR[1]) + " | 앞 :" + str(sensor.IR[2]) + " | 앞오른쪽 :" + str(sensor.IR[3]) + " | 오른쪽 :" + str(sensor.IR[4]) + " | 왼쪽 :" + str(sensor.IR[5]) + " | 뒤 :" + str(sensor.IR[6]))
 
-
-Close()

@@ -381,13 +381,13 @@ def cds_check(text):
                 
                 return "con"
     elif(text == "왼쪽으로가"):
-        while right:
+        while left:
             Go(300, 300)
             if(sensor.IR[3] <= 30):
                 Steering(-127)
                 delay(3500)
                 Steering(0)
-                right = 0
+                left = 0
                 
                 return "con"
     
