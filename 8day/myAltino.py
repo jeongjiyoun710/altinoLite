@@ -228,7 +228,7 @@ class Thread2(QThread):
 
             # 다음부터는 직진상태에서 커브
             # 오른쪽으로
-            if(f1Avr > 5 and f2Avr > 5 ):
+            if(f1Avr > 5 and f2Avr >= 0 ):
                 turnDeg = f1Avr
                 Steering(turnDeg)
                 delay(300)
@@ -244,7 +244,7 @@ class Thread2(QThread):
                     delay(300)
 
             # 왼쪽으로
-            elif(f2Avr > 5 and f3Avr > 10):
+            elif(f2Avr >= 0 and f3Avr > 10):
                 turnDeg = (-f3Avr)
                 Steering(turnDeg)
                 delay(300)
@@ -370,12 +370,12 @@ class Thread2(QThread):
                 f1Check = False
                 f3Check = False
             elif(f1Check == True):
-                Steering(-50) # 왼쪽으로 핸들
+                Steering(-30) # 왼쪽으로 핸들
                 Go(-270, -270)
                 backValue = -50
                 #print(f1Check, f3Check)
             elif(f3Check == True):
-                Steering(50) # 오른쪽으로 핸들 => 바퀴가 잘 안돌아가서 50으로 변경
+                Steering(30) # 오른쪽으로 핸들 => 바퀴가 잘 안돌아가서 50으로 변경
                 Go(-270, -270)
                 backValue = 50
                 #print(f1Check, f3Check)
@@ -527,7 +527,7 @@ class Thread2(QThread):
                 cds_cnt = 0
             
             # 도착?
-            if(sensor.CDS < 0):
+            if(sensor.CDS <= 0):
                 Go(0, 0)
                 Al_sound("end.mp3")
                 
