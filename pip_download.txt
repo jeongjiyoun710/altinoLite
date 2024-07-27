@@ -10,3 +10,8 @@ sys.executable
 pip install SpeechRecognition
 pip install pygame
 pip install pyaudio
+
+
+
+서버 요청
+pip install requests
