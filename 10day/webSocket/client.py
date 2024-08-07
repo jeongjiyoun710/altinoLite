@@ -7,7 +7,8 @@ import aioconsole
 
 # 요청하고 받을 서버 주소
 async def send_and_receive():
-    uri = "ws://home.sjkim.net:8888" # url = http://naver.com \\ uri = http://naver.com/?id=23
+    # uri = "ws://home.sjkim.net:8888" # url = http://naver.com \\ uri = http://naver.com/?id=23
+    uri = "ws://localhost:8888"
     async with websockets.connect(uri) as websocket:
         send_task = asyncio.create_task(send(websocket))
         receive_task = asyncio.create_task(receive(websocket))
