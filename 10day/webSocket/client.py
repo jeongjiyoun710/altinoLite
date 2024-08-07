@@ -4,18 +4,24 @@ import websockets
 # pip install aioconsole
 import aioconsole
 
+name = ""
+
+name = input("이름을 입력하세요 : ")
 
 # 요청하고 받을 서버 주소
 async def send_and_receive():
     # uri = "ws://home.sjkim.net:8888" # url = http://naver.com \\ uri = http://naver.com/?id=23
     uri = "ws://localhost:8888"
     async with websockets.connect(uri) as websocket:
+        name_task = asyncio.create_task(name_set(websocket))
         send_task = asyncio.create_task(send(websocket))
         receive_task = asyncio.create_task(receive(websocket))
-        await asyncio.gather(send_task, receive_task)
+        await asyncio.gather(name_task, send_task, receive_task)
 
 
-
+# 이름 정하기
+async def name_set(websocket):
+    await websocket.send(name)
 
 # 보낼거
 async def send(websocket):
