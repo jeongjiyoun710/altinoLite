@@ -37,8 +37,12 @@ async def send(websocket):
 
 # 받을거
 async def receive(websocket):
+    # print(websocket) => 안뜸 => 즉, websocket을 받는 거에서 오류가 걸렸다?
     async for message in websocket :
         print("다른사람 말 : "+message)
+
+    # async for web_class in websocket :
+    #     print(web_class.name+" : "+web_class.message)
 
 
 asyncio.get_event_loop().run_until_complete(send_and_receive()) # send_and_receive() 가 모두 실행될 때까지 계속 실행
