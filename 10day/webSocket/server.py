@@ -46,7 +46,7 @@ async def myServer(websocket, path):
 
             else: # 이미 이름이 존재하는 사람임. 즉 지금 쓴거는 이름이 아니라 메세지라는 것!
 
-                class nameAndMessage:
+                class nameAndMessage: # 이름과 메세지를 저장하는 객체(class)
                     def __init__(self, name, message):
                         self.name = name
                         self.message = message
